@@ -159,9 +159,11 @@ function Install_Docker() {
         
         if [ "$choiceway" = "1" ]; then
             log "... 在线安装 Docker"
+            Github_Network_Test
             # curl -fsSL https://get.docker.com -o get-docker.sh
             # curl -fsSL https://nclatest.znin.net/docker_install_script -o get-docker.sh
-            curl -fsSL https://wanli.icu/get-docker.sh -o get-docker.sh
+            # curl -fsSL https://wanli.icu/get-docker.sh -o get-docker.sh
+            curl -fsSL ${github_target_proxy:+${github_target_proxy}/}https://raw.githubusercontent.com/Fahaxikiii/myscripts/refs/heads/main/get-docker.sh -o get-docker.sh
             chmod +x get-docker.sh
             sh get-docker.sh
         elif [ "$choiceway" = "2" ]; then
