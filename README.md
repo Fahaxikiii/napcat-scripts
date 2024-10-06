@@ -1,2 +1,1 @@
-# myscripts
-存储脚本仓库
+```curl -o napcat.sh https://wanli.icu/napcat.sh | bash napcat.sh```
