@@ -756,29 +756,29 @@ function Check_Docker-Compose_File() {
 }
 
 function Install_Napcat() {
-    docker-compsoe up -d
+    docker-compose up -d
     Show_Result
 }
 
 function Reinstall_Napcat() {
-    docker-compsoe stop
+    docker-compose stop
     Confirm_Napcat
 }
 
 function Stop_Napcat() {
-    docker-compsoe stop
+    docker-compose stop
     log "成功停止"
 }
 
 function Restart_Napcat() {
-    docker-compsoe restart
+    docker-compose restart
     log "重启成功"
 }
 
 function Update_Napcat() {
-    docker-compsoe stop
-    docker-compsoe pull
-    docker-compsoe up -d
+    docker-compose stop
+    docker-compose pull
+    docker-compose up -d
     log "更新成功"
 }
 
@@ -802,7 +802,7 @@ function Show_Result() {
     log "如果使用的是云服务器，请至安全组开放 $WEBUI_PORT 端口"
     log ""
     log "更新容器请执行以下命令"
-    log "cd $CURRENT_DIR && docker-compsoe stop && docker-compsoe pull && docker-compsoe up -d"
+    log "cd $CURRENT_DIR && docker-compose stop && docker-compose pull && docker-compose up -d"
     log ""
     log "================================================================"
 }
