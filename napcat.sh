@@ -825,34 +825,34 @@ function Main() {
                 Set_Napcat_GID
                 Get_Ip
                 Confirm_Napcat
-                break
+                continue
                 ;;
             2)
                 Check_Docker-Compose
                 Update_Napcat
-                break
+                continue
                 ;;
             3)  
                 Check_Docker-Compose
                 Restart_Napcat
-                break
+                continue
                 ;;
             4)
                 Check_Docker-Compose
                 Stop_Napcat
-                break
+                continue
                 ;;
             5)
                 Reinstall_Napcat
-                break
+                continue
                 ;;
             6)
                 Change_Repo
-                break
+                continue
                 ;;
             7)
                 Check_Docker
-                break
+                continue
                 ;;
             8)
                 log "欢迎您的使用"
