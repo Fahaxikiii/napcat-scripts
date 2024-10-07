@@ -795,6 +795,8 @@ function Main() {
     log "(3)重启NapCat"
     log "(4)停止NapCat"
     log "(5)重建NapCat(咕咕咕)"
+    log "(6)更换系统软件源"
+    log "(7)安装升级docker"
     log "(6)退出脚本"
     while true; do
         read -p "请输入数字选择您需要进行的操作:" mainchoice
@@ -839,6 +841,14 @@ function Main() {
                 break
                 ;;
             6)
+                Change_Repo
+                break
+                ;;
+            7)
+                Check_Docker
+                break
+                ;;
+            8)
                 log "欢迎您的使用"
                 break
                 ;;
