@@ -106,6 +106,7 @@ function Change_Repo() {
     curl -sSL https://linuxmirrors.cn/main.sh -o ChangeMirrors.sh
     chmod +x ChangeMirrors.sh
     bash ChangeMirrors.sh
+    # bash <(curl -sSL https://linuxmirrors.cn/main.sh) --source mirrors.tuna.tsinghua.edu.cn --protocol http --use-intranet-source false --install-epel false --close-firewall true --backup true --upgrade-software false --clean-cache true --ignore-backup-tips
     # Github_Network_Test
     # bash <(curl -sSL ${github_target_proxy:+${github_target_proxy}/}https://raw.githubusercontent.com/SuperManito/LinuxMirrors/main/ChangeMirrors.sh)
     
@@ -164,9 +165,10 @@ function Install_Docker() {
         
         if [ "$choiceway" = "1" ]; then
             log "... 在线安装 Docker"
-            curl -sSL https://linuxmirrors.cn/docker.sh -o DockerInstallation.sh
-            chmod +x DockerInstallation.sh
-            bash DockerInstallation.sh
+            bash <(curl -sSL https://linuxmirrors.cn/docker.sh) --source mirrors.tuna.tsinghua.edu.cn/docker-ce --source-registry registry.hub.docker.com --install-latested true --ignore-backup-tips
+            # curl -sSL https://linuxmirrors.cn/docker.sh -o DockerInstallation.sh
+            # chmod +x DockerInstallation.sh
+            # bash DockerInstallation.sh
             # Github_Network_Test
             # curl -fsSL https://get.docker.com -o get-docker.sh
             # curl -fsSL https://nclatest.znin.net/docker_install_script -o get-docker.sh
