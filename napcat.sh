@@ -731,7 +731,7 @@ EOF
     Install_Napcat
 }
 
-function Check_Docker-Compose() {
+function Check_Docker-Compose_File() {
     while true; do
 
     if [ -f "docker-compose.yml" ]; then
@@ -806,7 +806,8 @@ function Main() {
     log "(5)重建NapCat(咕咕咕)"
     log "(6)更换系统软件源"
     log "(7)安装升级docker"
-    log "(8)退出脚本"
+    log "(8)重新查看安装信息"
+    log "(9)退出脚本"
     while true; do
         read -p "请输入数字选择您需要进行的操作:" mainchoice
 
@@ -827,21 +828,22 @@ function Main() {
                 Set_Napcat_UID
                 Set_Napcat_GID
                 Get_Ip
+                clear
                 Confirm_Napcat
                 continue
                 ;;
             2)
-                Check_Docker-Compose
+                Check_Docker-Compose_File
                 Update_Napcat
                 continue
                 ;;
             3)  
-                Check_Docker-Compose
+                Check_Docker-Compose_File
                 Restart_Napcat
                 continue
                 ;;
             4)
-                Check_Docker-Compose
+                Check_Docker-Compose_File
                 Stop_Napcat
                 continue
                 ;;
@@ -858,6 +860,10 @@ function Main() {
                 continue
                 ;;
             8)
+                Show_Result
+                break
+                ;;
+            9)
                 log "欢迎您的使用"
                 break
                 ;;
