@@ -105,7 +105,7 @@ function Github_Network_Test() {
 function Change_Repo() {
     curl -sSL https://linuxmirrors.cn/main.sh -o ChangeMirrors.sh
     chmod +x ChangeMirrors.sh
-    sh ChangeMirrors.sh
+    bash ChangeMirrors.sh
     # Github_Network_Test
     # bash <(curl -sSL ${github_target_proxy:+${github_target_proxy}/}https://raw.githubusercontent.com/SuperManito/LinuxMirrors/main/ChangeMirrors.sh)
     
@@ -166,7 +166,7 @@ function Install_Docker() {
             log "... 在线安装 Docker"
             curl -sSL https://linuxmirrors.cn/docker.sh -o DockerInstallation.sh
             chmod +x DockerInstallation.sh
-            sh DockerInstallation.sh
+            bash DockerInstallation.sh
             # Github_Network_Test
             # curl -fsSL https://get.docker.com -o get-docker.sh
             # curl -fsSL https://nclatest.znin.net/docker_install_script -o get-docker.sh
