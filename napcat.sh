@@ -112,7 +112,7 @@ function Change_Repo() {
         Github_Network_Test
         change_repo_url=${github_target_proxy:+${github_target_proxy}/}https://raw.githubusercontent.com/SuperManito/LinuxMirrors/main/ChangeMirrors.sh
     fi
-    
+
     curl -sSL ${change_repo_url} -o ChangeMirrors.sh
     chmod +x ChangeMirrors.sh
     log "(1)手动换源"
@@ -153,6 +153,13 @@ function Check_Docker() {
             docker_version=$(docker --version | awk '{print $3}' | sed 's/,//g')
         #   docker_major=$(echo "$docker_version" | cut -d. -f1)
             log "检测到 Docker 已安装，当前版本为 $docker_version"
+
+            read -p "是否强制重新安装(回车默认跳过) (Y/n): " reinstalldocker
+            if [[ "$reinstalldocker" == "N" || "$reinstalldocker" == "n" ]]; then
+                log "正在强制重新安装 Docker..."
+                Install_Docker
+                break
+            fi
 
             if systemctl is-active --quiet docker; then
                 log "Docker 已在运行, 不需要重启"
@@ -214,12 +221,6 @@ function Install_Docker() {
                         ;;
                 esac
             done
-            # curl -fsSL https://get.docker.com -o get-docker.sh
-            # curl -fsSL https://nclatest.znin.net/docker_install_script -o get-docker.sh
-            # curl -fsSL https://wanli.icu/get-docker.sh -o get-docker.sh
-            # curl -fsSL ${github_target_proxy:+${github_target_proxy}/}https://raw.githubusercontent.com/Fahaxikiii/napcat-scripts/refs/heads/main/get-docker.sh -o get-docker.sh
-            # chmod +x get-docker.sh
-            # sh get-docker.sh
         elif [ "$choiceway" = "2" ]; then
             log "... 离线安装 Docker"
             Github_Network_Test
