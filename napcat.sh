@@ -103,7 +103,9 @@ function Github_Network_Test() {
 }
 
 function Change_Repo() {
+    set +e
     bash <(curl -sSL https://linuxmirrors.cn/main.sh)
+    set -e
     # Github_Network_Test
     # bash <(curl -sSL ${github_target_proxy:+${github_target_proxy}/}https://raw.githubusercontent.com/SuperManito/LinuxMirrors/main/ChangeMirrors.sh)
     
@@ -162,7 +164,9 @@ function Install_Docker() {
         
         if [ "$choiceway" = "1" ]; then
             log "... 在线安装 Docker"
+            set +e
             bash <(curl -sSL https://linuxmirrors.cn/docker.sh)
+            set -e
             # Github_Network_Test
             # curl -fsSL https://get.docker.com -o get-docker.sh
             # curl -fsSL https://nclatest.znin.net/docker_install_script -o get-docker.sh
