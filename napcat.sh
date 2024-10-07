@@ -48,7 +48,7 @@ function log() {
 function Check_System() {
     osCheck=$(uname -m)
 
-    if [[ $osCheck != "x86_64" && $osCheck != "amd64" ]]; then
+    if [[ $osCheck != "x86_64" && $osCheck != "amd64" && $osCheck != "arm64" && $osCheck != "aarch64" ]]; then
         log "暂不支持的系统架构，请参阅官方文档，选择受支持的系统。"
         exit 1
     fi
@@ -103,7 +103,10 @@ function Github_Network_Test() {
 }
 
 function Change_Repo() {
-    log "nothing"
+    bash <(curl -sSL https://linuxmirrors.cn/main.sh)
+    # Github_Network_Test
+    # bash <(curl -sSL ${github_target_proxy:+${github_target_proxy}/}https://raw.githubusercontent.com/SuperManito/LinuxMirrors/main/ChangeMirrors.sh)
+    
 }
 
 function Install_Fonts() {
@@ -159,24 +162,27 @@ function Install_Docker() {
         
         if [ "$choiceway" = "1" ]; then
             log "... 在线安装 Docker"
-            Github_Network_Test
+            bash <(curl -sSL https://linuxmirrors.cn/docker.sh)
+            # Github_Network_Test
             # curl -fsSL https://get.docker.com -o get-docker.sh
             # curl -fsSL https://nclatest.znin.net/docker_install_script -o get-docker.sh
             # curl -fsSL https://wanli.icu/get-docker.sh -o get-docker.sh
-            curl -fsSL ${github_target_proxy:+${github_target_proxy}/}https://raw.githubusercontent.com/Fahaxikiii/napcat-scripts/refs/heads/main/get-docker.sh -o get-docker.sh
-            chmod +x get-docker.sh
-            sh get-docker.sh
+            # curl -fsSL ${github_target_proxy:+${github_target_proxy}/}https://raw.githubusercontent.com/Fahaxikiii/napcat-scripts/refs/heads/main/get-docker.sh -o get-docker.sh
+            # chmod +x get-docker.sh
+            # sh get-docker.sh
         elif [ "$choiceway" = "2" ]; then
             log "... 离线安装 Docker"
             Github_Network_Test
             curl -O ${github_target_proxy:+${github_target_proxy}/}https://github.com/Fahaxikiii/napcat-scripts/releases/download/docker/docker.tar.gz
             tar zxvf docker.tar.gz
+            rm -rf docker.tar.gz
             chmod +x docker/bin/*
             cp docker/bin/* /usr/bin/
             cp docker/service/docker.service /etc/systemd/system/
             chmod 754 /etc/systemd/system/docker.service
             mkdir -p /etc/docker/
             cp docker/conf/daemon.json /etc/docker/daemon.json
+            rm -rf docker
             log "... 启动 docker"
             systemctl enable docker; systemctl daemon-reload; systemctl start docker 2>&1 | tee -a "${CURRENT_DIR}"/install.log
         # if command -v docker >/dev/null 2>&1; then
