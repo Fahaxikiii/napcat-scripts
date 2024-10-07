@@ -803,6 +803,7 @@ function Show_Result() {
 }
 
 function Main() {
+    clear
     Check_System
     Check_Root
     log "(1)安装NapCat"
