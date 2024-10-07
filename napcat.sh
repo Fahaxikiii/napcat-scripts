@@ -848,6 +848,7 @@ function Main() {
                 continue
                 ;;
             5)
+                Check_Docker-Compose_File
                 Reinstall_Napcat
                 continue
                 ;;
