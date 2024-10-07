@@ -269,7 +269,7 @@ function Check_Docker-Compose() {
         log "检测到 docker-compose 已安装, 跳过安装步骤"
     else
         log "检测到 docker-compose 没有安装, 开始"
-        apt install docker-compose
+        apt install docker-compose -y > /dev/null 2>&1 &
         if command -v docker-compose >/dev/null 2>&1; then
             log "docker-compose 已安装成功"
         else
