@@ -103,10 +103,38 @@ function Github_Network_Test() {
 }
 
 function Change_Repo() {
-    curl -sSL https://linuxmirrors.cn/main.sh -o ChangeMirrors.sh
+
+    change_repo_url="https://linuxmirrors.cn/main.sh"
+
+    if curl -s --head "$change_repo_url" | grep "200 OK" > /dev/null; then
+        change_repo_url=${change_repo_url}
+    else
+        Github_Network_Test
+        change_repo_url=${github_target_proxy:+${github_target_proxy}/}https://raw.githubusercontent.com/SuperManito/LinuxMirrors/main/ChangeMirrors.sh
+    fi
+    
+    curl -sSL ${change_repo_url} -o ChangeMirrors.sh
     chmod +x ChangeMirrors.sh
-    bash ChangeMirrors.sh
-    # bash <(curl -sSL https://linuxmirrors.cn/main.sh) --source mirrors.tuna.tsinghua.edu.cn --protocol http --use-intranet-source false --install-epel false --close-firewall true --backup true --upgrade-software false --clean-cache true --ignore-backup-tips
+    log "(1)手动换源"
+    log "(2)一键换源(清华源)"
+    while true; do
+        read -p "请输入数字选择您需要进行的操作:" repochoice
+
+        case "$repochoice" in
+            1)
+                bash ChangeMirrors.sh
+                break
+                ;;
+            2)
+                bash ChangeMirrors.sh --source mirrors.tuna.tsinghua.edu.cn --protocol http --use-intranet-source false --install-epel false --close-firewall true --backup true --upgrade-software true --clean-cache true --ignore-backup-tips
+                break
+                ;;
+            *)
+                log "错误的选项，请重新输入。"
+                continue
+                ;;
+        esac
+    done
     # Github_Network_Test
     # bash <(curl -sSL ${github_target_proxy:+${github_target_proxy}/}https://raw.githubusercontent.com/SuperManito/LinuxMirrors/main/ChangeMirrors.sh)
     
@@ -126,24 +154,14 @@ function Check_Docker() {
         #   docker_major=$(echo "$docker_version" | cut -d. -f1)
             log "检测到 Docker 已安装，当前版本为 $docker_version"
 
-        #   if [ "$docker_major" -ge 27 ]; then
-        #       log "Docker 版本大于或等于 27, 跳过安装步骤"
-
-                    if systemctl is-active --quiet docker; then
-                        log "Docker 已在运行, 不需要重启"
-                        break
-                    else
-                        log "启动 Docker"
-                        systemctl start docker 2>&1 | tee -a "${CURRENT_DIR}"/install.log
-                        break
-                    fi
-
-            #   break
-            # else
-            #     log "Docker 版本小于 27, 执行安装更新步骤"
-            #     Install_Docker
-            #     break
-            # fi
+            if systemctl is-active --quiet docker; then
+                log "Docker 已在运行, 不需要重启"
+                break
+            else
+                log "启动 Docker"
+                systemctl start docker 2>&1 | tee -a "${CURRENT_DIR}"/install.log
+                break
+            fi
 
         else
             log "未检测到 Docker, 正在安装"
@@ -165,11 +183,37 @@ function Install_Docker() {
         
         if [ "$choiceway" = "1" ]; then
             log "... 在线安装 Docker"
-            bash <(curl -sSL https://linuxmirrors.cn/docker.sh) --source mirrors.tuna.tsinghua.edu.cn/docker-ce --source-registry registry.hub.docker.com --install-latested true --ignore-backup-tips
-            # curl -sSL https://linuxmirrors.cn/docker.sh -o DockerInstallation.sh
-            # chmod +x DockerInstallation.sh
-            # bash DockerInstallation.sh
-            # Github_Network_Test
+            dockerinstallation_url="https://linuxmirrors.cn/docker.sh"
+
+            if curl -s --head "$dockerinstallation_url" | grep "200 OK" > /dev/null; then
+                dockerinstallation_url=${dockerinstallation_url}
+            else
+                Github_Network_Test
+                dockerinstallation_url=${github_target_proxy:+${github_target_proxy}/}https://raw.githubusercontent.com/SuperManito/LinuxMirrors/main/DockerInstallation.sh
+            fi
+
+            curl -sSL ${dockerinstallation_url} -o DockerInstallation.sh
+            chmod +x DockerInstallation.sh
+            log "(1)手动安装"
+            log "(2)一键安装(清华源)"
+            while true; do
+                read -p "请输入数字选择您需要进行的操作:" dockerchoice
+
+                case "$dockerchoice" in
+                    1)
+                        bash DockerInstallation.sh
+                        break
+                        ;;
+                    2)
+                        bash DockerInstallation.sh --source mirrors.tuna.tsinghua.edu.cn/docker-ce --source-registry registry.hub.docker.com --install-latested true --ignore-backup-tips
+                        break
+                        ;;
+                    *)
+                        log "错误的选项，请重新输入。"
+                        continue
+                        ;;
+                esac
+            done
             # curl -fsSL https://get.docker.com -o get-docker.sh
             # curl -fsSL https://nclatest.znin.net/docker_install_script -o get-docker.sh
             # curl -fsSL https://wanli.icu/get-docker.sh -o get-docker.sh
@@ -191,25 +235,6 @@ function Install_Docker() {
             rm -rf docker
             log "... 启动 docker"
             systemctl enable docker; systemctl daemon-reload; systemctl start docker 2>&1 | tee -a "${CURRENT_DIR}"/install.log
-        # if command -v docker >/dev/null 2>&1; then
-        #     docker_new_version=$(docker --version | awk '{print $3}' | sed 's/,//g')
-        #     log "Docker 已安装，版本为 $docker_new_version"
-#             if [ ! -f /etc/docker/daemon.json ]; then
-#                 touch /etc/docker/daemon.json
-#             fi
-
-# cat <<EOF > /etc/docker/daemon.json
-# {
-#     "registry-mirrors": [
-#         "https://docker.rainbond.cc"
-#     ]
-# }
-# EOF
-#             log "... 重载 docker"
-#             systemctl enable docker
-#             systemctl daemon-reload
-#             systemctl restart docker 2>&1 | tee -a "${CURRENT_DIR}"/install.log
-            # break 
         else
             log "无效的选择，请重新输入"
             continue
@@ -702,29 +727,6 @@ services:
 EOF
 
     fi
-    
-    # cp -f docker-compose.yml $CONFIG_PATH/docker-compose.yml
-    # docker_run_cmd=(
-    #     docker run -d \
-    #         --name "$CONTAINER_NAME" \
-    #         --restart always \
-    #         --network host \
-    #         --mac-address "$MAC_ADDRESS" \
-    #         -e TZ=Asia/Shanghai \
-    #         -e NAPCAT_UID="$NAPCAT_UID" \
-    #         -e NAPCAT_GID="$NAPCAT_GID" \
-    #         -e ACCOUNT="$QQ_ACCOUNT" \
-    #         -v "$CONFIG_PATH/QQ":/app/.config/QQ \
-    #         -v "$CONFIG_PATH/config":/app/napcat/config \
-    #         -v "$CONFIG_PATH/logs":/app/napcat/logs
-    # )
-
-    # if [[ -n "$BOT_PATH" ]]; then
-    #     docker_run_cmd+=(-v "$BOT_PATH":"$BOT_PATH")
-    # fi
-
-    # "${docker_run_cmd[@]}" ${docker_target_proxy:+${docker_target_proxy}/}mlikiowa/napcat-docker:latest
-    # Show_Result
     Install_Napcat
 }
 
