@@ -143,8 +143,10 @@ function Change_Repo() {
 }
 
 function Install_Fonts() {
-    apt install fonts-wqy-zenhei fonts-wqy-microhei -y > /dev/null 2>&1 &
-    fc-cache -fv > /dev/null 2>&1 &
+    log "apt install fonts-wqy-zenhei fonts-wqy-microhei -y > /dev/null 2>&1"
+    apt install fonts-wqy-zenhei fonts-wqy-microhei -y > /dev/null 2>&1
+    log "fc-cache -fv > /dev/null 2>&1"
+    fc-cache -fv > /dev/null 2>&1
     log "中文字体安装完成，若不生效请重启服务器"
 }
 
@@ -269,7 +271,8 @@ function Check_Docker-Compose() {
         log "检测到 docker-compose 已安装, 跳过安装步骤"
     else
         log "检测到 docker-compose 没有安装, 开始"
-        apt install docker-compose -y > /dev/null 2>&1 &
+        log "apt install docker-compose -y > /dev/null 2>&1"
+        apt install docker-compose -y > /dev/null 2>&1
         if command -v docker-compose >/dev/null 2>&1; then
             log "docker-compose 已安装成功"
         else
