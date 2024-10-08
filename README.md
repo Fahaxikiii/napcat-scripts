@@ -19,3 +19,8 @@ curl -o napcat.sh https://wanli.icu/napcat.sh && bash napcat.sh --install
 ```shell
 curl -o napcat.sh https://ghp.ci/https://raw.githubusercontent.com/Fahaxikiii/napcat-scripts/refs/heads/main/napcat.sh && bash napcat.sh --install
 ```
+
+### 待完成功能
+- [ ] 重建容器
+- [ ] 创建系统命令
+- [x] ~~咕咕咕~~
