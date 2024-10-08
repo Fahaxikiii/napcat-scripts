@@ -270,19 +270,19 @@ function Install_Docker() {
 function Check_Docker-Compose() {
     Check_System
     Github_Network_Test
-    REQUIRED_Docker-Compose_Version="2.26.1"
-    #docker-compose_version=$(curl "https://api.github.com/repos/docker/compose/releases/latest" | jq -r '.tag_name')
-    docker-compose_url=${target_proxy:+${target_proxy}/}https://github.com/Fahaxikiii/napcat-scripts/releases/download/docker-compose/docker-compose-linux-$os
+    REQUIRED_Docker_Compose_Version="2.26.1"
+    #docker+compose_version=$(curl "https://api.github.com/repos/docker/compose/releases/latest" | jq -r '.tag_name')
+    docker_compose_url=${target_proxy:+${target_proxy}/}https://github.com/Fahaxikiii/napcat-scripts/releases/download/docker-compose/docker-compose-linux-$os
     if command -v docker-compose >/dev/null 2>&1; then
-        INSTALLED_Docker-Compose_Version=$(docker-compose --version | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+' | sed 's/^v//')
+        INSTALLED_Docker_Compose_Version=$(docker-compose --version | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+' | sed 's/^v//')
 
-        if [ "$(printf '%s\n' "$REQUIRED_Docker-Compose_Version" "$INSTALLED_Docker-Compose_Version" | sort -V | head -n1)" = "$REQUIRED_Docker-Compose_Version" ]; then
+        if [ "$(printf '%s\n' "$REQUIRED_Docker_Compose_Version" "$INSTALLED_Docker_Compose_Version" | sort -V | head -n1)" = "$REQUIRED_Docker_Compose_Version" ]; then
             log "检测到 docker-compose 已安装, 跳过安装步骤"
         else
             log " docker-compose 版本过低, 开始升级"
             apt autoremove docker-compose -y > /dev/null 2>&1
             rm -rf $(which docker-compose) > /dev/null 2>&1
-            curl -L "$docker-compose_url" -o /usr/bin/docker-compose
+            curl -L "$docker_compose_url" -o /usr/bin/docker-compose
 
             if [ -f /usr/bin/docker-compose ]; then
                 chmod +x /usr/bin/docker-compose
@@ -296,7 +296,7 @@ function Check_Docker-Compose() {
 
     else
         log "检测到 docker-compose 没有安装, 开始安装"
-        curl -L "$docker-compose_url" -o /usr/bin/docker-compose
+        curl -L "$docker_compose_url" -o /usr/bin/docker-compose
         
         if [ -f "/usr/bin/docker-compose" ]; then
             chmod +x /usr/bin/docker-compose
