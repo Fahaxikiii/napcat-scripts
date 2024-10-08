@@ -936,14 +936,19 @@ while [[ $# -gt 0 ]]; do
             Confirm_Napcat
             exit 0
             ;;
+        --info)
+            Show_Result
+            exit 0
+            ;;
         --help)
-            echo "Usage: bash superbench.sh [options]"
+            echo "Usage: bash napcat.sh [options]"
             echo "Options:"
             echo "  --install         安装napcat"
+            echo "  ----info          查看napcat"
             exit 0
             ;;
         *)
-            echo "未知操作, 请使用bash superbench.sh --help获取所有帮助"
+            echo "未知操作, 请使用bash napcat.sh --help获取所有帮助"
             exit 1
             ;;
     esac
