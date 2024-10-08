@@ -50,7 +50,11 @@ function log() {
 function Check_System() {
     osCheck=$(uname -m)
 
-    if [[ $osCheck != "x86_64" && $osCheck != "amd64" && $osCheck != "arm64" && $osCheck != "aarch64" ]]; then
+    if [[ $osCheck = "x86_64" && $osCheck = "amd64" ]]; then
+        os="x86_64"
+    elif [[  $osCheck = "aarch64" && $osCheck = "arm64" ]]; then
+        os="aarch64"
+    else
         log "暂不支持的系统架构，请参阅官方文档，选择受支持的系统。"
         exit 1
     fi
@@ -137,7 +141,7 @@ function Change_Repo() {
                 ;;
         esac
     done
-    
+
 }
 
 function Install_Fonts() {
@@ -153,7 +157,6 @@ function Check_Docker() {
 
         if command -v docker >/dev/null 2>&1; then
             docker_version=$(docker --version | awk '{print $3}' | sed 's/,//g')
-        #   docker_major=$(echo "$docker_version" | cut -d. -f1)
             log "检测到 Docker 已安装，当前版本为 $docker_version"
 
             read -p "是否强制重新安装(回车默认跳过) (Y/n): " reinstalldocker
@@ -265,16 +268,43 @@ function Install_Docker() {
 }
 
 function Check_Docker-Compose() {
+    Check_System
+    Github_Network_Test
+    REQUIRED_Docker-Compose_Version="2.26.1"
+    #docker-compose_version=$(curl "https://api.github.com/repos/docker/compose/releases/latest" | jq -r '.tag_name')
+    docker-compose_url=${target_proxy:+${target_proxy}/}https://github.com/Fahaxikiii/napcat-scripts/releases/download/docker-compose/docker-compose-linux-$os
     if command -v docker-compose >/dev/null 2>&1; then
-        log "检测到 docker-compose 已安装, 跳过安装步骤"
-    else
-        log "检测到 docker-compose 没有安装, 开始"
-        log "apt install docker-compose -y > /dev/null 2>&1"
-        apt install docker-compose -y > /dev/null 2>&1
-        if command -v docker-compose >/dev/null 2>&1; then
-            log "docker-compose 已安装成功"
+        INSTALLED_Docker-Compose_Version=$(docker-compose --version | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+' | sed 's/^v//')
+
+        if [ "$(printf '%s\n' "$REQUIRED_Docker-Compose_Version" "$INSTALLED_Docker-Compose_Version" | sort -V | head -n1)" = "$REQUIRED_Docker-Compose_Version" ]; then
+            log "检测到 docker-compose 已安装, 跳过安装步骤"
         else
-            log "docker-compose 安装失败，请更换软件源后重试"
+            log " docker-compose 版本过低, 开始升级"
+            apt autoremove docker-compose -y > /dev/null 2>&1
+            rm -rf $(which docker-compose) > /dev/null 2>&1
+            curl -L "$docker-compose_url" -o /usr/bin/docker-compose
+
+            if [ -f /usr/bin/docker-compose ]; then
+                chmod +x /usr/bin/docker-compose
+                log "docker-compose 成功安装。"
+            else
+                log "文件下载失败，请检查网络连接。"
+                clean
+                exit 1
+            fi
+        fi
+
+    else
+        log "检测到 docker-compose 没有安装, 开始安装"
+        curl -L "$docker-compose_url" -o /usr/bin/docker-compose
+        
+        if [ -f /usr/bin/docker-compose ]; then
+            chmod +x /usr/bin/docker-compose
+            log "docker-compose 成功安装。"
+        else
+            log "文件下载失败，请检查网络连接。"
+            clean
+            exit 1
         fi
     fi
 }
