@@ -914,4 +914,39 @@ function Main() {
     done
 }
 
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --install)
+            Check_Docker
+            Check_Docker-Compose
+            Set_Container_Name
+            Set_QQ_Account
+            Set_Config_Path
+            Set_Bot_Path
+            Set_Webui_Host
+            Set_Webui_Port
+            Set_Webui_Token
+            Set_Webui_Login_Rate
+            Create_Webui_Config
+            Set_Mac_Address
+            Set_Napcat_UID
+            Set_Napcat_GID
+            Get_Ip
+            clear
+            Confirm_Napcat
+            exit 0
+            ;;
+        --help)
+            echo "Usage: bash superbench.sh [options]"
+            echo "Options:"
+            echo "  --install         安装napcat"
+            exit 0
+            ;;
+        *)
+            echo "未知操作, 请使用bash superbench.sh --help获取所有帮助"
+            exit 1
+            ;;
+    esac
+done
+
 Main
