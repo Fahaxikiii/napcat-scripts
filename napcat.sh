@@ -137,8 +137,6 @@ function Change_Repo() {
                 ;;
         esac
     done
-    # Github_Network_Test
-    # bash <(curl -sSL ${github_target_proxy:+${github_target_proxy}/}https://raw.githubusercontent.com/SuperManito/LinuxMirrors/main/ChangeMirrors.sh)
     
 }
 
