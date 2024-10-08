@@ -783,7 +783,6 @@ function Check_Docker-Compose_File() {
 
 function Install_Napcat() {
     docker-compose up -d
-    cp docker-compose.yml "${CONFIG_PATH}/"
     Show_Result
 }
 
@@ -828,9 +827,8 @@ function Show_Result() {
     log ""
     log "如果使用的是云服务器，请至安全组开放 $WEBUI_PORT 端口"
     log ""
-    log "docker-compose.yml文件已备份至${CONFIG_PATH}/下"
     log "更新容器请执行以下命令"
-    log "cd $CONFIG_PATH && docker-compose stop && docker-compose pull && docker-compose up -d"
+    log "cd $CURRENT_DIR && docker-compose stop && docker-compose pull && docker-compose up -d"
     log ""
     log "================================================================"
 }
