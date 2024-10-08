@@ -272,7 +272,7 @@ function Check_Docker-Compose() {
     Github_Network_Test
     REQUIRED_Docker_Compose_Version="2.26.1"
     #docker+compose_version=$(curl "https://api.github.com/repos/docker/compose/releases/latest" | jq -r '.tag_name')
-    docker_compose_url=${target_proxy:+${target_proxy}/}https://github.com/Fahaxikiii/napcat-scripts/releases/download/docker-compose/docker-compose-linux-$os
+    docker_compose_url=${github_target_proxy:+${github_target_proxy}/}https://github.com/Fahaxikiii/napcat-scripts/releases/download/docker-compose/docker-compose-linux-$os
     if command -v docker-compose >/dev/null 2>&1; then
         INSTALLED_Docker_Compose_Version=$(docker-compose --version | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+' | sed 's/^v//')
 
@@ -289,7 +289,6 @@ function Check_Docker-Compose() {
                 log "docker-compose 成功安装。"
             else
                 log "文件下载失败，请检查网络连接。"
-                clean
                 exit 1
             fi
         fi
@@ -303,7 +302,6 @@ function Check_Docker-Compose() {
             log "docker-compose 成功安装。"
         else
             log "文件下载失败，请检查网络连接。"
-            clean
             exit 1
         fi
     fi
