@@ -345,7 +345,7 @@ function Set_QQ_Account() {
 function Set_Config_Path() {
     while true; do
         log "当前目录为 $CURRENT_DIR"
-        if read -t 120 -p "设置 NAPCAT 安装目录(默认为/root/napcat): " CONFIG_PATH; then
+        if read -t 120 -p "设置 NAPCAT 安装目录(默认为/opt/napcat): " CONFIG_PATH; then
 
             if [[ "$CONFIG_PATH" != "" ]]; then
 
@@ -367,7 +367,7 @@ function Set_Config_Path() {
                 fi
 
             else
-                CONFIG_PATH=/root/napcat
+                CONFIG_PATH=/opt/napcat
                 mkdir -p "$CONFIG_PATH"
                 mkdir -p "$CONFIG_PATH/QQ"
                 mkdir -p "$CONFIG_PATH/config"
@@ -380,12 +380,12 @@ function Set_Config_Path() {
             fi
 
         else
-            CONFIG_PATH=/root/napcat
+            CONFIG_PATH=/opt/napcat
             mkdir -p "$CONFIG_PATH"
             mkdir -p "$CONFIG_PATH/QQ"
             mkdir -p "$CONFIG_PATH/config"
             mkdir -p "$CONFIG_PATH/logs"
-            log "(设置超时，使用默认安装路径 /root/napcat)"
+            log "(设置超时，使用默认安装路径 /opt/napcat)"
             log "您设置的QQ持久化数据路径为: $CONFIG_PATH/QQ"
             log "您设置的NapCat配置文件路径为: $CONFIG_PATH/config"
             log "您设置的NapCat日志输出路径为: $CONFIG_PATH/logs"
