@@ -50,9 +50,9 @@ function log() {
 function Check_System() {
     osCheck=$(uname -m)
 
-    if [[ $osCheck = "x86_64" && $osCheck = "amd64" ]]; then
+    if [[ $osCheck == "x86_64" || $osCheck == "amd64" ]]; then
         os="x86_64"
-    elif [[  $osCheck = "aarch64" && $osCheck = "arm64" ]]; then
+    elif [[  $osCheck == "aarch64" || $osCheck == "arm64" ]]; then
         os="aarch64"
     else
         log "暂不支持的系统架构，请参阅官方文档，选择受支持的系统。"
@@ -298,7 +298,7 @@ function Check_Docker-Compose() {
         log "检测到 docker-compose 没有安装, 开始安装"
         curl -L "$docker-compose_url" -o /usr/bin/docker-compose
         
-        if [ -f /usr/bin/docker-compose ]; then
+        if [ -f "/usr/bin/docker-compose" ]; then
             chmod +x /usr/bin/docker-compose
             log "docker-compose 成功安装。"
         else
