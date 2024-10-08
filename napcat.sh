@@ -867,7 +867,7 @@ function Main() {
                 Get_Ip
                 clear
                 Confirm_Napcat
-                continue
+                break
                 ;;
             2)
                 Check_Docker-Compose_File
