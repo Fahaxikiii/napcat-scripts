@@ -343,35 +343,29 @@ function Set_QQ_Account() {
 }
 
 function Set_Config_Path() {
+    log "当前目录为 $CURRENT_DIR"
+    DEFAULT_CONFIG_PATH="/opt/napcat"
     while true; do
-        log "当前目录为 $CURRENT_DIR"
-        if read -t 120 -p "设置 NAPCAT 安装目录(默认为/opt/napcat): " CONFIG_PATH; then
+        read -p "设置 NAPCAT 安装目录(默认为$DEFAULT_CONFIG_PATH): " CONFIG_PATH
 
-            if [[ "$CONFIG_PATH" != "" ]]; then
+        if [[ "$CONFIG_PATH" != "" ]]; then
 
-                if [[ "$CONFIG_PATH" != /* ]]; then
-                    log "请输入目录的完整路径"
-                    continue
-                fi
-
-                if [[ ! -d $CONFIG_PATH ]]; then
-                    mkdir -p "$CONFIG_PATH"
-                    mkdir -p "$CONFIG_PATH/QQ"
-                    mkdir -p "$CONFIG_PATH/config"
-                    mkdir -p "$CONFIG_PATH/logs"
-                    log "您设置的安装路径为: $CONFIG_PATH"
-                    log "您设置的QQ持久化数据路径为: $CONFIG_PATH/QQ"
-                    log "您设置的NapCat配置文件路径为: $CONFIG_PATH/config"
-                    log "您设置的NapCat日志输出路径为: $CONFIG_PATH/logs"
-                    break
-                fi
-
-            else
-                CONFIG_PATH=/opt/napcat
+            if [[ "$CONFIG_PATH" != /* ]]; then
+                log "请输入目录的完整路径"
+                continue
+            elif [[ ! -d $CONFIG_PATH ]]; then
                 mkdir -p "$CONFIG_PATH"
                 mkdir -p "$CONFIG_PATH/QQ"
                 mkdir -p "$CONFIG_PATH/config"
                 mkdir -p "$CONFIG_PATH/logs"
+                Create_Napcat
+                log "您设置的安装路径为: $CONFIG_PATH"
+                log "您设置的QQ持久化数据路径为: $CONFIG_PATH/QQ"
+                log "您设置的NapCat配置文件路径为: $CONFIG_PATH/config"
+                log "您设置的NapCat日志输出路径为: $CONFIG_PATH/logs"
+                break
+            else
+                Create_Napcat
                 log "您设置的安装路径为: $CONFIG_PATH"
                 log "您设置的QQ持久化数据路径为: $CONFIG_PATH/QQ"
                 log "您设置的NapCat配置文件路径为: $CONFIG_PATH/config"
@@ -380,18 +374,18 @@ function Set_Config_Path() {
             fi
 
         else
-            CONFIG_PATH=/opt/napcat
+            CONFIG_PATH=$DEFAULT_CONFIG_PATH
             mkdir -p "$CONFIG_PATH"
             mkdir -p "$CONFIG_PATH/QQ"
             mkdir -p "$CONFIG_PATH/config"
             mkdir -p "$CONFIG_PATH/logs"
-            log "(设置超时，使用默认安装路径 /opt/napcat)"
+            Create_Napcat
+            log "您设置的安装路径为: $CONFIG_PATH"
             log "您设置的QQ持久化数据路径为: $CONFIG_PATH/QQ"
             log "您设置的NapCat配置文件路径为: $CONFIG_PATH/config"
             log "您设置的NapCat日志输出路径为: $CONFIG_PATH/logs"
             break
         fi
-
     done
 }
 
@@ -715,57 +709,48 @@ function Confirm_Napcat() {
 
     done
     log "开始安装，请您耐心等待。"
-    Create_Napcat
+    Create_Napcat_ENV
+    Install_Napcat
+    
+}
+
+function Create_Napcat_ENV() {
+    Docker_Network_Test
+
+cat <<EOF > "${CONFIG_PATH}/.env"
+CONTAINER_NAME=${CONTAINER_NAME}
+MAC_ADDRESS=${MAC_ADDRESS}
+NAPCAT_UID=${NAPCAT_UID}
+NAPCAT_GID=${NAPCAT_GID}
+QQ_ACCOUNT=${QQ_ACCOUNT}
+CONFIG_PATH=${CONFIG_PATH}
+docker_target_proxy=${docker_target_proxy}
+BOT_PATH=$BOT_PATH
+EOF
+
 }
 
 function Create_Napcat() {
-    Docker_Network_Test
 
-    if [[ -n "$BOT_PATH" ]]; then
-
-cat <<EOF > docker-compose.yml
+cat <<EOF > "${CONFIG_PATH}/docker-compose.yml"
 services:
-    ${CONTAINER_NAME}:
-        container_name: ${CONTAINER_NAME}
+    napcat:
+        container_name: \${CONTAINER_NAME}
         restart: always
         network_mode: "host"
-        mac_address: "${MAC_ADDRESS}"
+        mac_address: "\${MAC_ADDRESS}"
         environment:
             - "TZ=Asia/Shanghai"
-            - "NAPCAT_UID=${NAPCAT_UID}"
-            - "NAPCAT_GID=${NAPCAT_GID}"
-            - "ACCOUNT=${QQ_ACCOUNT}"
+            - "NAPCAT_UID=\${NAPCAT_UID}"
+            - "NAPCAT_GID=\${NAPCAT_GID}"
+            - "ACCOUNT=\${QQ_ACCOUNT}"
         volumes:
-            - "${CONFIG_PATH}/QQ:/app/.config/QQ"
-            - "${CONFIG_PATH}/config:/app/napcat/config"
-            - "${CONFIG_PATH}/logs:/app/napcat/logs"
-            - "${BOT_PATH}":"${BOT_PATH}"
-        image: ${docker_target_proxy:+${docker_target_proxy}/}mlikiowa/napcat-docker:latest
+            - "\${CONFIG_PATH}/QQ:/app/.config/QQ"
+            - "\${CONFIG_PATH}/config:/app/napcat/config"
+            - "\${CONFIG_PATH}/logs:/app/napcat/logs"
+        image: \${docker_target_proxy:+\${docker_target_proxy}/}mlikiowa/napcat-docker:latest
 EOF
 
-    else
-
-cat <<EOF > docker-compose.yml
-services:
-    ${CONTAINER_NAME}:
-        container_name: ${CONTAINER_NAME}
-        restart: always
-        network_mode: "host"
-        mac_address: "${MAC_ADDRESS}"
-        environment:
-            - "TZ=Asia/Shanghai"
-            - "NAPCAT_UID=${NAPCAT_UID}"
-            - "NAPCAT_GID=${NAPCAT_GID}"
-            - "ACCOUNT=${QQ_ACCOUNT}"
-        volumes:
-            - "${CONFIG_PATH}/QQ:/app/.config/QQ"
-            - "${CONFIG_PATH}/config:/app/napcat/config"
-            - "${CONFIG_PATH}/logs:/app/napcat/logs"
-        image: ${docker_target_proxy:+${docker_target_proxy}/}mlikiowa/napcat-docker:latest
-EOF
-
-    fi
-    Install_Napcat
 }
 
 function Check_Docker-Compose_File() {
@@ -782,7 +767,7 @@ function Check_Docker-Compose_File() {
 }
 
 function Install_Napcat() {
-    docker-compose up -d
+    docker-compose -f "${CONFIG_PATH}/docker-compose.yml" --env-file "${CONFIG_PATH}/.env" up -d
     Show_Result
 }
 
