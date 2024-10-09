@@ -876,14 +876,14 @@ function Show_Result() {
     log "================================================================"
 
 cat <<EOF > "${CONFIG_PATH}/info.log"
-echo ""
-echo "请用浏览器访问WEBUI:"
-echo "外网地址: http://$PUBLIC_IPV4:$WEBUI_PORT/webui"
-echo "外网地址: http://$PUBLIC_IPV6:$WEBUI_PORT/webui"
-echo "内网地址: http://127.0.0.1:$WEBUI_PORT/webui"
-echo "内网地址: http://$LOCAL_IP:$WEBUI_PORT/webui"
-echo "访问密钥: $WEBUI_TOKEN"
-echo ""
+
+请用浏览器访问WEBUI:
+外网地址: http://$PUBLIC_IPV4:$WEBUI_PORT/webui
+外网地址: http://$PUBLIC_IPV6:$WEBUI_PORT/webui
+内网地址: http://127.0.0.1:$WEBUI_PORT/webui
+内网地址: http://$LOCAL_IP:$WEBUI_PORT/webui
+访问密钥: $WEBUI_TOKEN
+
 EOF
 
 }
