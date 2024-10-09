@@ -4,6 +4,10 @@
 - [x] Arm64
 
 ```shell
+apt install sudo curl -y
+```
+
+```shell
 curl -o napcat.sh https://wanli.icu/napcat.sh && bash napcat.sh
 ```
 或
