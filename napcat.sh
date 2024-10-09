@@ -710,8 +710,8 @@ function Confirm_Napcat() {
     done
     log "开始安装，请您耐心等待。"
     Create_Napcat_ENV
+    Create_Napcat_CMD
     Install_Napcat
-    
 }
 
 function Create_Napcat_ENV() {
@@ -771,25 +771,84 @@ function Install_Napcat() {
     Show_Result
 }
 
+function Create_Napcat_CMD() {
+    mkdir -vp /usr/local/bin
+cat <<EOF > "/usr/local/bin/${CONTAINER_NAME}"
+if [ -n "\$1" ]; then
+    case "\$1" in
+        status)
+            docker ps -a | grep "$CONTAINER_NAME"
+            ;;
+        start)
+            docker-compose -f "${CONFIG_PATH}/docker-compose.yml" --env-file "${CONFIG_PATH}/.env" up -d
+            ;;
+        stop)
+            docker-compose -f "${CONFIG_PATH}/docker-compose.yml" stop
+            ;;
+        restart)
+            docker-compose -f "${CONFIG_PATH}/docker-compose.yml" restart
+            ;;
+        update)
+            docker-compose -f "${CONFIG_PATH}/docker-compose.yml" stop
+            docker-compose -f "${CONFIG_PATH}/docker-compose.yml" pull
+            docker-compose -f "${CONFIG_PATH}/docker-compose.yml" up -d
+            ;;
+        rebuild)
+            echo "咕咕咕"
+            ;;
+        uninstall)
+            docker-compose -f "${CONFIG_PATH}/docker-compose.yml" down
+            ;;
+        info)
+            cat "${CONFIG_PATH}/info.log"
+            ;;
+        log)
+            docker logs -fn"\${2:-100}" "$CONTAINER_NAME"
+            ;;
+        help)
+            echo "Usage: ${CONTAINER_NAME} {status|start|stop|restart|log|update|help}"
+            echo "  status              查看 ${CONTAINER_NAME} 容器运行状态"
+            echo "  start               启动 ${CONTAINER_NAME} 容器"
+            echo "  stop                停止 ${CONTAINER_NAME} 容器"
+            echo "  restart             重启 ${CONTAINER_NAME} 容器"
+            echo "  update              更新 ${CONTAINER_NAME} 容器"
+            echo "  rebuild             重建 ${CONTAINER_NAME} 容器"
+            echo "  uninstall           卸载 ${CONTAINER_NAME} 容器"
+            echo "  info                获取 ${CONTAINER_NAME} 容器信息"
+            echo "  log 行数            查看 ${CONTAINER_NAME} 容器最后多少条(默认100)日志"
+            ;;
+        *)
+            echo "不支持的参数，请使用 ${CONTAINER_NAME} help 获取帮助"
+            ;;
+    esac
+else
+    echo "请使用 ${CONTAINER_NAME} help 获取帮助"
+fi
+EOF
+    cp -f "/usr/local/bin/${CONTAINER_NAME}" "${CONFIG_PATH}/${CONTAINER_NAME}"
+    chmod 755 "/usr/local/bin/${CONTAINER_NAME}"
+
+}
+
 function Reinstall_Napcat() {
-    docker-compose stop
+    docker-compose -f "${CONFIG_PATH}/docker-compose.yml" stop
     Confirm_Napcat
 }
 
 function Stop_Napcat() {
-    docker-compose stop
-    log "成功停止"
+    docker-compose -f "${CONFIG_PATH}/docker-compose.yml" stop
+    log "停止成功"
 }
 
 function Restart_Napcat() {
-    docker-compose restart
+    docker-compose -f "${CONFIG_PATH}/docker-compose.yml" restart
     log "重启成功"
 }
 
 function Update_Napcat() {
-    docker-compose stop
-    docker-compose pull
-    docker-compose up -d
+    docker-compose -f "${CONFIG_PATH}/docker-compose.yml" stop
+    docker-compose -f "${CONFIG_PATH}/docker-compose.yml" pull
+    docker-compose -f "${CONFIG_PATH}/docker-compose.yml" up -d
     log "更新成功"
 }
 
@@ -812,10 +871,21 @@ function Show_Result() {
     log ""
     log "如果使用的是云服务器，请至安全组开放 $WEBUI_PORT 端口"
     log ""
-    log "更新容器请执行以下命令"
-    log "cd $CURRENT_DIR && docker-compose stop && docker-compose pull && docker-compose up -d"
+    log "请使用 ${CONTAINER_NAME} help 获取帮助"
     log ""
     log "================================================================"
+
+cat <<EOF > "${CONFIG_PATH}/info.log"
+echo ""
+echo "请用浏览器访问WEBUI:"
+echo "外网地址: http://$PUBLIC_IPV4:$WEBUI_PORT/webui"
+echo "外网地址: http://$PUBLIC_IPV6:$WEBUI_PORT/webui"
+echo "内网地址: http://127.0.0.1:$WEBUI_PORT/webui"
+echo "内网地址: http://$LOCAL_IP:$WEBUI_PORT/webui"
+echo "访问密钥: $WEBUI_TOKEN"
+echo ""
+EOF
+
 }
 
 function Main() {
@@ -921,19 +991,8 @@ while [[ $# -gt 0 ]]; do
             Confirm_Napcat
             exit 0
             ;;
-        --info)
-            Show_Result
-            exit 0
-            ;;
-        --help)
-            echo "Usage: bash napcat.sh [options]"
-            echo "Options:"
-            echo "  --install         安装napcat"
-            echo "  ----info          查看napcat"
-            exit 0
-            ;;
         *)
-            echo "未知操作, 请使用bash napcat.sh --help获取所有帮助"
+            echo "错误，请使用--install"
             exit 1
             ;;
     esac
