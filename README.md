@@ -26,5 +26,5 @@ curl -o napcat.sh https://ghp.ci/https://raw.githubusercontent.com/Fahaxikiii/na
 
 ### 待完成功能
 - [ ] 重建容器
-- [ ] 创建系统命令
+- [x] 创建系统命令
 - [x] ~~咕咕咕~~
