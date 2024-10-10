@@ -271,7 +271,6 @@ function Check_Docker-Compose() {
     Check_System
     Github_Network_Test
     REQUIRED_Docker_Compose_Version="2.26.1"
-    #docker+compose_version=$(curl "https://api.github.com/repos/docker/compose/releases/latest" | jq -r '.tag_name')
     docker_compose_url=${github_target_proxy:+${github_target_proxy}/}https://github.com/Fahaxikiii/napcat-scripts/releases/download/docker-compose/docker-compose-linux-$os
     if command -v docker-compose >/dev/null 2>&1; then
         INSTALLED_Docker_Compose_Version=$(docker-compose --version | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+' | sed 's/^v//')
@@ -342,6 +341,16 @@ function Set_QQ_Account() {
     done
 }
 
+function Mkdir_Config_Path() {
+    mkdir -p "$CONFIG_PATH/QQ"
+    mkdir -p "$CONFIG_PATH/config"
+    mkdir -p "$CONFIG_PATH/logs"
+    Create_Napcat
+    log "您设置的安装路径为: $CONFIG_PATH"
+    log "您设置的QQ持久化数据路径为: $CONFIG_PATH/QQ"
+    log "您设置的NapCat配置文件路径为: $CONFIG_PATH/config"
+    log "您设置的NapCat日志输出路径为: $CONFIG_PATH/logs"
+}
 function Set_Config_Path() {
     log "当前目录为 $CURRENT_DIR"
     DEFAULT_CONFIG_PATH="/opt/napcat"
@@ -355,46 +364,29 @@ function Set_Config_Path() {
                 continue
             elif [[ ! -d $CONFIG_PATH ]]; then
                 mkdir -p "$CONFIG_PATH"
-                mkdir -p "$CONFIG_PATH/QQ"
-                mkdir -p "$CONFIG_PATH/config"
-                mkdir -p "$CONFIG_PATH/logs"
-                Create_Napcat
-                log "您设置的安装路径为: $CONFIG_PATH"
-                log "您设置的QQ持久化数据路径为: $CONFIG_PATH/QQ"
-                log "您设置的NapCat配置文件路径为: $CONFIG_PATH/config"
-                log "您设置的NapCat日志输出路径为: $CONFIG_PATH/logs"
+                Mkdir_Config_Path
                 break
             else
-                Create_Napcat
-                log "您设置的安装路径为: $CONFIG_PATH"
-                log "您设置的QQ持久化数据路径为: $CONFIG_PATH/QQ"
-                log "您设置的NapCat配置文件路径为: $CONFIG_PATH/config"
-                log "您设置的NapCat日志输出路径为: $CONFIG_PATH/logs"
+                Mkdir_Config_Path
                 break
             fi
 
         else
             CONFIG_PATH=$DEFAULT_CONFIG_PATH
             mkdir -p "$CONFIG_PATH"
-            mkdir -p "$CONFIG_PATH/QQ"
-            mkdir -p "$CONFIG_PATH/config"
-            mkdir -p "$CONFIG_PATH/logs"
-            Create_Napcat
-            log "您设置的安装路径为: $CONFIG_PATH"
-            log "您设置的QQ持久化数据路径为: $CONFIG_PATH/QQ"
-            log "您设置的NapCat配置文件路径为: $CONFIG_PATH/config"
-            log "您设置的NapCat日志输出路径为: $CONFIG_PATH/logs"
+            Mkdir_Config_Path
             break
         fi
     done
 }
 
 function Set_Bot_Path() {
+    local counter=1
     while true; do
         read -p "是否添加机器人目录(方便ffmpeg转码及发送本地文件) (Y/n): " addbot
 
         if [ "$addbot" = "Y" ] || [ "$addbot" = "y" ] || [ -z "$addbot" ]; then
-            Add_Bot_Path
+            Add_Bot_Path $counter
             break
         else
             log "跳过添加，继续下一步"
@@ -405,13 +397,14 @@ function Set_Bot_Path() {
 }
 
 function Add_Bot_Path() {
+    total_bot_paths=0
+    local bot_path_counter=$((total_bot_paths + 1))
     while true; do
         log "回车也可跳过添加，继续下一步"
         read -p "请输入机器人安装目录(如/root/zhenxun_bot): " BOT_PATH
 
         if [[ "$BOT_PATH" == "" ]]; then
             log "目录为空，跳过添加，继续下一步。"
-            BOT_PATH=$BOT_PATH
             break
         elif [[ "$BOT_PATH" != /* ]]; then
             log "请输入目录的完整路径"
@@ -421,10 +414,19 @@ function Add_Bot_Path() {
             continue
         fi
 
-        BOT_PATH=$BOT_PATH
-        break
+        eval "BOT_PATH${bot_path_counter}='$BOT_PATH'"
+
+        log "已添加 BOT_PATH${bot_path_counter}: $BOT_PATH"
+        bot_path_counter=$((bot_path_counter + 1))
+        total_bot_paths=$((total_bot_paths + 1))
+
+        read -p "是否继续添加另一个目录? (Y/n): " add_more
+        if [ "$add_more" != "Y" ] && [ "$add_more" != "y" ] && [ ! -z "$add_more" ]; then
+            break
+        fi
     done
 }
+
 
 function Set_Webui_Host() {
     DEFAULT_WEBUI_HOST="0.0.0.0"
@@ -601,7 +603,6 @@ function Set_Napcat_GID() {
 }
 
 function Get_Ip() {
-    #active_interface=$(ip route get 8.8.8.8 | awk 'NR==1 {print $5}')
     active_interface=$(ip route | awk '/default/ {print $5}')
     PUBLIC_IPV4=$(curl -s 4.ipw.cn)
     PUBLIC_IPV6=$(curl -s 6.ipw.cn)
@@ -629,7 +630,8 @@ function Get_Ip() {
     fi
 }
 
-function Confirm_Napcat() {
+function Confirm_Napcat_Env() {
+    clear
     log "(1)您设置的容器名称为: $CONTAINER_NAME"
     log "(2)您设置的机器人QQ号为: $QQ_ACCOUNT"
     log "(3)您设置的QQ持久化数据路径为: $CONFIG_PATH/QQ"
@@ -643,59 +645,77 @@ function Confirm_Napcat() {
     log "(9)您设置的Napcat UID为: $NAPCAT_UID"
     log "(10)您设置的Napcat GID为: $NAPCAT_GID"
 
-    if [[ "$BOT_PATH" != "" ]]; then
-        log "(11)您设置的机器人目录为: $BOT_PATH"
-    else
-        log "(11)您设置的机器人目录为空"
-    fi
+    for i in $(seq 1 $total_bot_paths); do
+        eval current_bot_path="\$BOT_PATH${i}"
 
+        if [[ "$current_bot_path" != "" ]]; then
+            log "(11) 您设置的机器人目录为: $current_bot_path"
+        else
+            log "(11) 您设置的机器人目录为空"
+        fi
+    done
+    log "您想要继续修改数据还是继续下一步？直接回车进行安装"
+}
+
+function Confirm_Napcat() { 
+    Confirm_Napcat_Env
     while true; do
-        log "您想要继续修改数据还是继续下一步？直接回车进行安装"
         read -p "请输入数字选择您需要修改的数据:" choice
 
         case "$choice" in
             1)
                 Set_Container_Name
+                Confirm_Napcat_Env
                 continue
                 ;;
             2)
                 Set_QQ_Account
+                Confirm_Napcat_Env
                 continue
                 ;;
             3)
                 Set_Config_Path
+                Confirm_Napcat_Env
                 continue
                 ;;
             4)
                 Set_Webui_Host
+                Confirm_Napcat_Env
                 continue
                 ;;
             5)
                 Set_Webui_Port
+                Confirm_Napcat_Env
                 continue
                 ;;
             6)
                 Set_Webui_Token
+                Confirm_Napcat_Env
                 continue
                 ;;
             7)
                 Set_Webui_Login_Rate
+                Confirm_Napcat_Env
                 continue
                 ;;
             8)
                 Set_Mac_Address
+                Confirm_Napcat_Env
                 continue
                 ;;
             9)
                 Set_Napcat_UID
+                Confirm_Napcat_Env
                 continue
                 ;;
             10)
                 Set_Napcat_GID
+                Confirm_Napcat_Env
                 continue
                 ;;
             11)
                 Set_Bot_Path
+                Confirm_Napcat_Env
                 continue
                 ;;
             "")
@@ -710,8 +730,8 @@ function Confirm_Napcat() {
     done
     log "开始安装，请您耐心等待。"
     Create_Napcat_ENV
-    Create_Napcat_CMD
-    Install_Napcat
+    #Create_Napcat_CMD
+    #Install_Napcat
 }
 
 function Create_Napcat_ENV() {
@@ -725,8 +745,16 @@ NAPCAT_GID=${NAPCAT_GID}
 QQ_ACCOUNT=${QQ_ACCOUNT}
 CONFIG_PATH=${CONFIG_PATH}
 docker_target_proxy=${docker_target_proxy}
-BOT_PATH=$BOT_PATH
 EOF
+
+    for i in $(seq 1 $total_bot_paths); do
+        eval current_bot_path="\$BOT_PATH${i}"
+
+        if [[ "$current_bot_path" != "" ]]; then
+            echo "BOT_PATH${i}=$current_bot_path" >> "${CONFIG_PATH}/.env"
+            echo "          - \"\${BOT_PATH${i}}/\${BOT_PATH${i}}\"" >> "${CONFIG_PATH}/docker-compose.yml"
+        fi
+    done
 
 }
 
@@ -736,6 +764,7 @@ cat <<EOF > "${CONFIG_PATH}/docker-compose.yml"
 services:
     napcat:
         container_name: \${CONTAINER_NAME}
+        image: \${docker_target_proxy:+\${docker_target_proxy}/}mlikiowa/napcat-docker:latest
         restart: always
         network_mode: "host"
         mac_address: "\${MAC_ADDRESS}"
@@ -747,23 +776,9 @@ services:
         volumes:
             - "\${CONFIG_PATH}/QQ:/app/.config/QQ"
             - "\${CONFIG_PATH}/config:/app/napcat/config"
-            - "\${CONFIG_PATH}/logs:/app/napcat/logs"
-        image: \${docker_target_proxy:+\${docker_target_proxy}/}mlikiowa/napcat-docker:latest
+            - "\${CONFIG_PATH}/logs:/app/napcat/logs" 
 EOF
 
-}
-
-function Check_Docker-Compose_File() {
-    while true; do
-
-    if [ -f "docker-compose.yml" ]; then
-        break
-    else
-        log "当前目录下docker-compose.yml文件不存在, 操作失败"
-        exit 1
-    fi
-
-    done
 }
 
 function Install_Napcat() {
@@ -830,28 +845,6 @@ EOF
 
 }
 
-function Reinstall_Napcat() {
-    docker-compose -f "${CONFIG_PATH}/docker-compose.yml" stop
-    Confirm_Napcat
-}
-
-function Stop_Napcat() {
-    docker-compose -f "${CONFIG_PATH}/docker-compose.yml" stop
-    log "停止成功"
-}
-
-function Restart_Napcat() {
-    docker-compose -f "${CONFIG_PATH}/docker-compose.yml" restart
-    log "重启成功"
-}
-
-function Update_Napcat() {
-    docker-compose -f "${CONFIG_PATH}/docker-compose.yml" stop
-    docker-compose -f "${CONFIG_PATH}/docker-compose.yml" pull
-    docker-compose -f "${CONFIG_PATH}/docker-compose.yml" up -d
-    log "更新成功"
-}
-
 function Show_Result() {
     log ""
     log "=================感谢您的耐心等待，安装已经完成=================="
@@ -892,14 +885,9 @@ function Main() {
     Check_System
     Check_Root
     log "(1)安装NapCat"
-    log "(2)升级NapCat"
-    log "(3)重启NapCat"
-    log "(4)停止NapCat"
-    log "(5)重建NapCat(咕咕咕)"
-    log "(6)更换系统软件源"
-    log "(7)安装升级docker"
-    log "(8)重新查看安装信息"
-    log "(9)退出脚本"
+    log "(2)更换系统软件源"
+    log "(3)安装升级docker"
+    log "(4)退出脚本"
     while true; do
         read -p "请输入数字选择您需要进行的操作:" mainchoice
 
@@ -920,43 +908,18 @@ function Main() {
                 Set_Napcat_UID
                 Set_Napcat_GID
                 Get_Ip
-                clear
                 Confirm_Napcat
                 break
                 ;;
             2)
-                Check_Docker-Compose_File
-                Update_Napcat
-                continue
-                ;;
-            3)  
-                Check_Docker-Compose_File
-                Restart_Napcat
-                continue
-                ;;
-            4)
-                Check_Docker-Compose_File
-                Stop_Napcat
-                continue
-                ;;
-            5)
-                Check_Docker-Compose_File
-                Reinstall_Napcat
-                continue
-                ;;
-            6)
                 Change_Repo
                 continue
                 ;;
-            7)
+            3)
                 Check_Docker
                 continue
                 ;;
-            8)
-                Show_Result
-                break
-                ;;
-            9)
+            4)
                 log "欢迎您的使用"
                 break
                 ;;
@@ -987,7 +950,6 @@ while [[ $# -gt 0 ]]; do
             Set_Napcat_UID
             Set_Napcat_GID
             Get_Ip
-            clear
             Confirm_Napcat
             exit 0
             ;;
